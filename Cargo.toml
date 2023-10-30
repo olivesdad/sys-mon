@@ -1,0 +1,19 @@
+[package]
+name = "sys_mon"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+systemstat = "0.2.3"
+time = "0.3.9"
+lazy_static = "1.0"
+bytesize = "1.1"
+libc = "0.2"
+the_serde = { package = "serde", version = "1.0", features = ["derive"], optional = true }
+crossterm = "0.27.0"
+ratatui = "0.24.0"
+
+[features]
+serde = ["the_serde", "bytesize/serde", "time/serde"]
