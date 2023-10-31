@@ -5,19 +5,20 @@
 use ratatui::{
     backend::Backend,
     layout::{Constraint, Direction, Layout, Rect},
-    style::{Color, Style, Modifier},
+    prelude::Alignment,
+    style::{Color, Modifier, Style},
     text::{Line, Span, Text},
     widgets::{Block, Borders, Clear, List, ListItem, Paragraph, Wrap},
-    Frame, prelude::Alignment
+    Frame,
 };
 
-use crate::app::{App, CurrentScreen};
+use crate::app::{App, State, Units};
 
 // Main function used to render the UI.
 // passed as a closure to the draw function which passes the frame size to it.
 // We also pass an app reference to it so we can query the state of hte world
 pub fn ui(f: &mut Frame, app: &App) {
-    // Sections 
+    // Sections
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
@@ -26,58 +27,79 @@ pub fn ui(f: &mut Frame, app: &App) {
             Constraint::Length(3),
         ])
         .split(f.size());
-    
+
     // Title Box
     // Border box thing
     let title_block = Block::default()
-            .borders(Borders::ALL)
-            .style(Style::default())
-            .title("OOga Booga");
+        .borders(Borders::ALL)
+        .style(Style::default())
+        .title("OOga Booga");
     // Paragraph widget takes ownership of title_block
-    let title = Paragraph::new(
-        Text::styled("system stats", Style::default()
-            .add_modifier(Modifier::BOLD))
-    ).block(title_block)
+    let title = Paragraph::new(Text::styled(
+        "system stats",
+        Style::default().add_modifier(Modifier::BOLD),
+    ))
+    .block(title_block)
     .alignment(Alignment::Center);
-    
+
     // SPlit in 2 blocks for info
     let info_chunks = Layout::default()
         .direction(Direction::Horizontal)
-        .constraints([
-            Constraint::Percentage(50),
-            Constraint::Percentage(50),
-        ])
+        .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
         .split(chunks[1]);
-    
+
+    // +++++++ CPUT TEMP BLOCK + PARAGRAPH ++++++++ //
     let temp_block = Block::default()
-            .borders(Borders::ALL)
-            .style(Style::default())
-            .title("CPU Temperatur");
-    
+        .borders(Borders::ALL)
+        .style(Style::default())
+        .title("CPU Temperatur");
+    // unit char
+    let unit = match app.units {
+        Units::Celcius => "C",
+        Units::Farenheight => "F",
+    };
+
+    let temp = Paragraph::new(Text::styled(
+        app.getTemp().to_string() + unit,
+        Style::default(),
+    ))
+    .block(temp_block)
+    .alignment(Alignment::Center);
+
+    // +++++++ CPU LOAD BLOCK + PARAGRAPH  ++++++++ //
     let load_block = Block::default()
-            .borders(Borders::ALL)
-            .style(Style::default())
-            .title("System Load");
-    
+        .borders(Borders::ALL)
+        .style(Style::default())
+        .title("System Load");
+
+    let load = Paragraph::new(Text::styled(
+        app.getLoad().to_string() + "%",
+        Style::default(),
+    ))
+    .block(load_block)
+    .alignment(Alignment::Center);
+
     //Quit message box
     let footer_block = Block::default()
-            .borders(Borders::ALL)
-            .style(Style::default().bg(Color::LightYellow));
+        .borders(Borders::ALL)
+        .style(Style::default().bg(Color::LightYellow));
     // Quit paragraph
-    let footer = Paragraph::new(
-        Text::styled("Press 'Q' to quit",
-            Style::default()
+    let footer = Paragraph::new(Text::styled(
+        "Press 'Q' to quit",
+        Style::default()
             .fg(Color::DarkGray)
             .bg(Color::LightYellow)
-            .add_modifier(Modifier::BOLD)
-        )).block(footer_block);
+            .add_modifier(Modifier::BOLD),
+    ))
+    .block(footer_block);
     // RENDER STUFF
     // Title
     f.render_widget(title, chunks[0]);
     f.render_widget(footer, chunks[2]);
-
+    f.render_widget(load, info_chunks[0]);
+    f.render_widget(temp, info_chunks[1]);
+    //f.render_widget(widget, area)
 }
-
 
 /// helper function to create a centered rect using up certain percentage of the available rect `r`
 fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {

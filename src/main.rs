@@ -1,20 +1,19 @@
-use std::{error::Error, io, thread, time};
 use app::App;
-use ratatui::{
-    backend::{Backend, CrosstermBackend, self},
-    Terminal,
-};
 use crossterm::{
     event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode, KeyEventKind},
     execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
+use ratatui::{
+    backend::{self, Backend, CrosstermBackend},
+    Terminal,
+};
+use std::{error::Error, io, thread, time};
 
-mod app;
 mod UI;
-
+mod app;
+mod systemstat_example;
 fn main() -> Result<(), Box<dyn Error>> {
-
     //setup terminal
     enable_raw_mode()?;
     //use to log to stderr
@@ -27,14 +26,11 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     //create app and run it
     let mut app = App::new();
-    let res = run_app(&mut terminal, &mut app); 
+    let res = run_app(&mut terminal, &mut app);
 
     // clean up
     disable_raw_mode()?;
-    execute!(
-        terminal.backend_mut(),
-        LeaveAlternateScreen
-    )?;
+    execute!(terminal.backend_mut(), LeaveAlternateScreen)?;
     terminal.show_cursor()?;
 
     Ok(())
@@ -42,6 +38,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
 fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<bool> {
     loop {
+        app.poll();
         terminal.draw(|f| UI::ui(f, app))?;
 
         //temp  to exit without hanging
