@@ -52,7 +52,7 @@ pub fn ui(f: &mut Frame, app: &App) {
     let temp_block = Block::default()
         .borders(Borders::ALL)
         .style(Style::default())
-        .title("CPU Temperatur");
+        .title("CPU Temperature");
     // unit char
     let unit = match app.units {
         Units::Celcius => "C",
@@ -60,7 +60,7 @@ pub fn ui(f: &mut Frame, app: &App) {
     };
 
     let temp = Paragraph::new(Text::styled(
-        app.getTemp().to_string() + unit,
+        app.get_temp().to_string() + unit,
         Style::default(),
     ))
     .block(temp_block)
@@ -72,12 +72,21 @@ pub fn ui(f: &mut Frame, app: &App) {
         .style(Style::default())
         .title("System Load");
 
-    let load = Paragraph::new(Text::styled(
-        app.getLoad().to_string() + "%",
-        Style::default(),
-    ))
+
+    // Lines for loads
+    let loads = app.get_load();
+    let load_lines = vec![
+        format!("nice: {}%", loads.get("nice").unwrap()).into(),
+        format!("user: {}%", loads.get("user").unwrap()).into(),
+        format!("system {}%", loads.get("system").unwrap()).into(),
+        format!("interrupt: {}%", loads.get("interrupt").unwrap()).into(),
+        format!("idle: {}%", loads.get("idle").unwrap()).into(),
+    ];
+
+    let load = Paragraph::new(load_lines
+    )
     .block(load_block)
-    .alignment(Alignment::Center);
+    .alignment(Alignment::Left);
 
     //Quit message box
     let footer_block = Block::default()
