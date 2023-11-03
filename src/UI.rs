@@ -2,6 +2,7 @@
 - This module should handle the rendering and layout of the thing
 */
 
+use crate::app::{App, State, Units};
 use ratatui::{
     backend::Backend,
     layout::{Constraint, Direction, Layout, Rect},
@@ -11,8 +12,6 @@ use ratatui::{
     widgets::{Block, Borders, Clear, List, ListItem, Paragraph, Wrap},
     Frame,
 };
-
-use crate::app::{App, State, Units};
 
 // Main function used to render the UI.
 // passed as a closure to the draw function which passes the frame size to it.
@@ -72,7 +71,6 @@ pub fn ui(f: &mut Frame, app: &App) {
         .style(Style::default())
         .title("System Load");
 
-
     // Lines for loads
     let loads = app.get_load();
     let load_lines = vec![
@@ -83,10 +81,9 @@ pub fn ui(f: &mut Frame, app: &App) {
         format!("idle: {}%", loads.get("idle").unwrap()).into(),
     ];
 
-    let load = Paragraph::new(load_lines
-    )
-    .block(load_block)
-    .alignment(Alignment::Left);
+    let load = Paragraph::new(load_lines)
+        .block(load_block)
+        .alignment(Alignment::Left);
 
     //Quit message box
     let footer_block = Block::default()
@@ -101,13 +98,14 @@ pub fn ui(f: &mut Frame, app: &App) {
             .add_modifier(Modifier::BOLD),
     ))
     .block(footer_block);
+    
+    
     // RENDER STUFF
-    // Title
     f.render_widget(title, chunks[0]);
     f.render_widget(footer, chunks[2]);
     f.render_widget(load, info_chunks[0]);
     f.render_widget(temp, info_chunks[1]);
-    //f.render_widget(widget, area)
+
 }
 
 /// helper function to create a centered rect using up certain percentage of the available rect `r`

@@ -8,11 +8,13 @@ use ratatui::{
     backend::{self, Backend, CrosstermBackend},
     Terminal,
 };
+use std::sync::mpsc::sync_channel;
 use std::{error::Error, io, thread, time};
-
 mod UI;
 mod app;
+mod events;
 mod systemstat_example;
+
 fn main() -> Result<(), Box<dyn Error>> {
     //setup terminal
     enable_raw_mode()?;
@@ -26,6 +28,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     //create app and run it
     let mut app = App::new();
+
     let res = run_app(&mut terminal, &mut app);
 
     // clean up
@@ -37,13 +40,34 @@ fn main() -> Result<(), Box<dyn Error>> {
 }
 
 fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<bool> {
+    // create channels
+    let (tx, rx) = sync_channel(2);
+    // spawn worker
+    let mut poller = app::Poller::new();
+    let _worker = thread::spawn(move || poller.sys_mon(tx));
+    //set reciever
+    app.set_reciever(rx);
+
+    // Draw loop
     loop {
         app.poll();
+        //render terminal
         terminal.draw(|f| UI::ui(f, app))?;
 
         //temp  to exit without hanging
         thread::sleep(time::Duration::from_millis(5000));
+
+        //change units test
+        app.units = app::Units::Farenheight;
+        app.poll();
+        terminal.draw(|f| UI::ui(f, app))?;
+        thread::sleep(time::Duration::from_millis(5000));
+        app.poll();
+        terminal.draw(|f| UI::ui(f, app))?;
+        thread::sleep(time::Duration::from_millis(5000));
         break;
     }
+
+    // if worker.join().is_ok(){}
     Ok(true)
 }
