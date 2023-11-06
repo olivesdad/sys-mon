@@ -31,7 +31,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     //create app and run it
     let mut app = App::new();
 
-    let res = run_app(&mut terminal, &mut app);
+    let _res: Result<bool, io::Error> = run_app(&mut terminal, &mut app);
 
     // clean up
     disable_raw_mode()?;
@@ -63,7 +63,9 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
             _ => {},
         }
         app.poll();
-        app.check_keys();
+        if app.check_keys().is_err(){
+           break;
+        }
         //render terminal
         terminal.draw(|f| UI::ui(f, app))?;
         thread::sleep(time::Duration::from_millis(300));

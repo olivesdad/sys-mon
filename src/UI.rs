@@ -2,14 +2,13 @@
 - This module should handle the rendering and layout of the thing
 */
 
-use crate::app::{App, State, Units};
+use crate::app::{App, Units};
 use ratatui::{
-    backend::Backend,
     layout::{Constraint, Direction, Layout, Rect},
     prelude::Alignment,
     style::{Color, Modifier, Style},
-    text::{Line, Span, Text},
-    widgets::{Block, Borders, Clear, List, ListItem, Paragraph, Wrap},
+    text::Text,
+    widgets::{Block, Borders, Paragraph},
     Frame,
 };
 
@@ -91,7 +90,7 @@ pub fn ui(f: &mut Frame, app: &App) {
         .style(Style::default().bg(Color::LightYellow));
     // Quit paragraph
     let footer = Paragraph::new(Text::styled(
-        "Press 'Q' to quit",
+        "Press 'Q' to quit, 'TAB' to change units",
         Style::default()
             .fg(Color::DarkGray)
             .bg(Color::LightYellow)

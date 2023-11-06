@@ -100,11 +100,9 @@ impl Loads {
 
 //this struct should handlle the state of the app
 pub struct App {
-    temp: Option<f32>,
     load: Loads,
     pub units: Units,
     pub state: State,
-    sys: System,
     reciever: Option<mpsc::Receiver<Loads>>,
     event_handler: Option<mpsc::Receiver<Option<KeyActions>>>,
 }
@@ -112,11 +110,9 @@ pub struct App {
 impl App {
     pub fn new() -> App {
         App {
-            temp: None,
             load: Loads::new(),
             units: Units::Celcius,
             state: State::run,
-            sys: System::new(),
             reciever: None,
             event_handler: None,
         }
@@ -137,8 +133,7 @@ impl App {
         }
     }
 
-    // Returns an array of loads in f32 in the order of:
-    // [ user, nice, system, interrupt, idle]
+    // get hashmap for temp things
     pub fn get_load(&self) -> HashMap<String, f32> {
         let mut loads = HashMap::new();
 
@@ -159,7 +154,7 @@ impl App {
         match &self.reciever {
             //pull load off channel
             Some(rx) => {
-                if let Ok(loads) = rx.recv_timeout(Duration::from_millis(300)) {
+                if let Ok(loads) = rx.recv_timeout(Duration::from_millis(250)) {
                     self.load = loads;
                 }
             }
@@ -167,6 +162,7 @@ impl App {
         }
     }
 
+    // Function to check if key presses were entered
     pub fn check_keys(&mut self) -> Result<(), ()> {
         let mut got_message = true;
 
@@ -174,7 +170,7 @@ impl App {
             None => return Err(()),
             Some(x) => {
                 while got_message {
-                    let res = x.recv_timeout(Duration::from_millis(200));
+                    let res = x.recv_timeout(Duration::from_millis(250));
                     match res {
                         Err(_) => got_message = false,
                         Ok(msg) => match msg {
