@@ -2,17 +2,15 @@
 - This module should handle the rendering and layout of the thing
 */
 
+use crate::app::{App, Units};
 use ratatui::{
-    backend::Backend,
     layout::{Constraint, Direction, Layout, Rect},
     prelude::Alignment,
     style::{Color, Modifier, Style},
-    text::{Line, Span, Text},
-    widgets::{Block, Borders, Clear, List, ListItem, Paragraph, Wrap},
+    text::Text,
+    widgets::{Block, Borders, Paragraph},
     Frame,
 };
-
-use crate::app::{App, State, Units};
 
 // Main function used to render the UI.
 // passed as a closure to the draw function which passes the frame size to it.
@@ -72,7 +70,6 @@ pub fn ui(f: &mut Frame, app: &App) {
         .style(Style::default())
         .title("System Load");
 
-
     // Lines for loads
     let loads = app.get_load();
     let load_lines = vec![
@@ -83,10 +80,9 @@ pub fn ui(f: &mut Frame, app: &App) {
         format!("idle: {}%", loads.get("idle").unwrap()).into(),
     ];
 
-    let load = Paragraph::new(load_lines
-    )
-    .block(load_block)
-    .alignment(Alignment::Left);
+    let load = Paragraph::new(load_lines)
+        .block(load_block)
+        .alignment(Alignment::Left);
 
     //Quit message box
     let footer_block = Block::default()
@@ -94,20 +90,19 @@ pub fn ui(f: &mut Frame, app: &App) {
         .style(Style::default().bg(Color::LightYellow));
     // Quit paragraph
     let footer = Paragraph::new(Text::styled(
-        "Press 'Q' to quit",
+        "Press 'Q' to quit, 'TAB' to change units",
         Style::default()
             .fg(Color::DarkGray)
             .bg(Color::LightYellow)
             .add_modifier(Modifier::BOLD),
     ))
     .block(footer_block);
+
     // RENDER STUFF
-    // Title
     f.render_widget(title, chunks[0]);
     f.render_widget(footer, chunks[2]);
     f.render_widget(load, info_chunks[0]);
     f.render_widget(temp, info_chunks[1]);
-    //f.render_widget(widget, area)
 }
 
 /// helper function to create a centered rect using up certain percentage of the available rect `r`
