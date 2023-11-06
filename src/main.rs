@@ -66,19 +66,7 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
         app.check_keys();
         //render terminal
         terminal.draw(|f| UI::ui(f, app))?;
-        thread::sleep(time::Duration::from_millis(500));
-        //temp  to exit without hanging
-/*         thread::sleep(time::Duration::from_millis(5000));
-
-        //change units test
-        app.units = app::Units::Farenheight;
-        app.poll();
-        terminal.draw(|f| UI::ui(f, app))?;
-        thread::sleep(time::Duration::from_millis(5000));
-        app.poll();
-        terminal.draw(|f| UI::ui(f, app))?;
-        thread::sleep(time::Duration::from_millis(5000));
-        break; */
+        thread::sleep(time::Duration::from_millis(300));
     }
 
     // if worker.join().is_ok(){}
