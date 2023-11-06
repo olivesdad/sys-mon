@@ -4,12 +4,14 @@ use crossterm::{
     execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
+
 use ratatui::{
     backend::{self, Backend, CrosstermBackend},
     Terminal,
 };
 use std::sync::mpsc::sync_channel;
 use std::{error::Error, io, thread, time};
+
 mod UI;
 mod app;
 mod events;
@@ -42,12 +44,17 @@ fn main() -> Result<(), Box<dyn Error>> {
 fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<bool> {
     // create channels
     let (tx, rx) = sync_channel(2);
-    // spawn worker
+    // spawn worker for system stats
     let mut poller = app::Poller::new();
     let _worker = thread::spawn(move || poller.sys_mon(tx));
-    //set reciever
+    //set reciever for system stats
     app.set_reciever(rx);
 
+    // spawn event KeyPressHandler
+    let (tx, rx) = std::sync::mpsc::channel::<Option<events::KeyActions>>();
+    let mut kph = events::KeyPressHandler::new(tx);
+    app.set_event_handleer(rx);
+    let _event_handler  = thread::spawn(move|| kph.poll());
     // Draw loop
     loop {
         app.poll();

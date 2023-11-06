@@ -98,14 +98,12 @@ pub fn ui(f: &mut Frame, app: &App) {
             .add_modifier(Modifier::BOLD),
     ))
     .block(footer_block);
-    
-    
+
     // RENDER STUFF
     f.render_widget(title, chunks[0]);
     f.render_widget(footer, chunks[2]);
     f.render_widget(load, info_chunks[0]);
     f.render_widget(temp, info_chunks[1]);
-
 }
 
 /// helper function to create a centered rect using up certain percentage of the available rect `r`

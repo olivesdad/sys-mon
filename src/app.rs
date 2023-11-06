@@ -4,8 +4,9 @@
 extern crate systemstat;
 use futures::channel::mpsc::{Receiver, Sender};
 use std::sync::mpsc;
+use crate::events::KeyActions;
 use std::sync::mpsc::channel;
-
+use crossterm::event::KeyCode;
 use std::time::Duration;
 use std::{collections::HashMap, thread};
 use systemstat::{saturating_sub_bytes, Platform, System};
@@ -105,6 +106,7 @@ pub struct App {
     state: State,
     sys: System,
     reciever: Option<mpsc::Receiver<Loads>>,
+    event_handler: Option<mpsc::Receiver<Option<KeyActions>>>,
 }
 
 impl App {
@@ -116,7 +118,11 @@ impl App {
             state: State::run,
             sys: System::new(),
             reciever: None,
+            event_handler: None,
         }
+    }
+    pub fn set_event_handleer(&mut self, rx: mpsc::Receiver<Option<KeyActions>>){
+        self.event_handler = Some(rx);
     }
     pub fn set_reciever(&mut self, rx: mpsc::Receiver<Loads>) {
         self.reciever = Some(rx);
@@ -149,7 +155,6 @@ impl App {
     }
 
     pub fn poll(&mut self) {
-
         // set values
         match &self.reciever {
             //pull load off channel
