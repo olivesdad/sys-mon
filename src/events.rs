@@ -35,8 +35,12 @@ impl KeyPressHandler {
                     if key.kind == crossterm::event::KeyEventKind::Press {
                         // We only care about tab and q
                         match key.code {
-                            KeyCode::Tab => channel_status = self.sender.send(Some(KeyActions::toggle_units)),
-                            KeyCode::Char('q') => channel_status = self.sender.send(Some(KeyActions::quit)),
+                            KeyCode::Tab => {
+                                channel_status = self.sender.send(Some(KeyActions::toggle_units))
+                            }
+                            KeyCode::Char('q') => {
+                                channel_status = self.sender.send(Some(KeyActions::quit))
+                            }
                             //Just send None if its a key we dont care about
                             _ => channel_status = self.sender.send(None),
                         }

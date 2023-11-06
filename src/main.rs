@@ -55,14 +55,20 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
     let mut kph = events::KeyPressHandler::new(tx);
     app.set_event_handleer(rx);
     let _event_handler  = thread::spawn(move|| kph.poll());
+    
     // Draw loop
     loop {
+        match app.state {
+            app::State::quit => break,
+            _ => {},
+        }
         app.poll();
+        app.check_keys();
         //render terminal
         terminal.draw(|f| UI::ui(f, app))?;
-
+        thread::sleep(time::Duration::from_millis(500));
         //temp  to exit without hanging
-        thread::sleep(time::Duration::from_millis(5000));
+/*         thread::sleep(time::Duration::from_millis(5000));
 
         //change units test
         app.units = app::Units::Farenheight;
@@ -72,7 +78,7 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
         app.poll();
         terminal.draw(|f| UI::ui(f, app))?;
         thread::sleep(time::Duration::from_millis(5000));
-        break;
+        break; */
     }
 
     // if worker.join().is_ok(){}

@@ -2,11 +2,11 @@
 - This mod should handle the logic and state of the app
 */
 extern crate systemstat;
+use crate::events::KeyActions;
+use crossterm::event::KeyCode;
 use futures::channel::mpsc::{Receiver, Sender};
 use std::sync::mpsc;
-use crate::events::KeyActions;
 use std::sync::mpsc::channel;
-use crossterm::event::KeyCode;
 use std::time::Duration;
 use std::{collections::HashMap, thread};
 use systemstat::{saturating_sub_bytes, Platform, System};
@@ -19,7 +19,7 @@ pub enum Units {
 
 pub enum State {
     run,
-    exit,
+    quit,
 }
 
 // Poller to check syst monitor
@@ -103,7 +103,7 @@ pub struct App {
     temp: Option<f32>,
     load: Loads,
     pub units: Units,
-    state: State,
+    pub state: State,
     sys: System,
     reciever: Option<mpsc::Receiver<Loads>>,
     event_handler: Option<mpsc::Receiver<Option<KeyActions>>>,
@@ -121,7 +121,7 @@ impl App {
             event_handler: None,
         }
     }
-    pub fn set_event_handleer(&mut self, rx: mpsc::Receiver<Option<KeyActions>>){
+    pub fn set_event_handleer(&mut self, rx: mpsc::Receiver<Option<KeyActions>>) {
         self.event_handler = Some(rx);
     }
     pub fn set_reciever(&mut self, rx: mpsc::Receiver<Loads>) {
@@ -165,5 +165,35 @@ impl App {
             }
             _ => {}
         }
+    }
+
+    pub fn check_keys(&mut self) -> Result<(), ()> {
+        let mut got_message = true;
+
+        match &self.event_handler {
+            None => return Err(()),
+            Some(x) => {
+                while got_message {
+                    let res = x.recv_timeout(Duration::from_millis(200));
+                    match res {
+                        Err(_) => got_message = false,
+                        Ok(msg) => match msg {
+                            Some(key) => match key {
+                                KeyActions::quit => {
+                                    self.state = State::quit;
+                                    got_message = false;
+                                }
+                                KeyActions::toggle_units => match self.units {
+                                    Units::Celcius => self.units = Units::Farenheight,
+                                    Units::Farenheight => self.units = Units::Celcius,
+                                },
+                            },
+                            None => {}
+                        },
+                    }
+                }
+            }
+        }
+        Ok(())
     }
 }
