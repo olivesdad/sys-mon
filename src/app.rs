@@ -67,6 +67,18 @@ impl Poller {
                 }
             }
 
+            // set battery temp
+            match sys.battery_life() {
+                Ok(battery) => {
+                 //   "\nBattery: {}%, {}h{}m remaining",
+                 //   battery.remaining_capacity * 100.0,
+                  //  battery.remaining_time.as_secs() / 3600,
+                  //  battery.remaining_time.as_secs() % 60
+                  loads.battery = Some((battery.remaining_capacity * 100.0) as u8 );
+                },
+                Err(_) => loads.battery = None,
+            }
+
             let res = tx.send(loads);
             if res.is_ok() {
             } else {
@@ -83,6 +95,7 @@ pub struct Loads {
     interrupt: Option<f32>,
     idle: Option<f32>,
     temp: Option<f32>,
+    battery: Option<u8>,
 }
 
 impl Loads {
@@ -94,6 +107,7 @@ impl Loads {
             interrupt: None,
             idle: None,
             temp: None,
+            battery: None,
         }
     }
 }
@@ -133,6 +147,13 @@ impl App {
         }
     }
 
+    pub fn get_battery_left(&self) ->u8 {
+        if let Some(p) = self.load.battery {
+            p
+        } else {
+            0
+        }
+    }
     // get hashmap for temp things
     pub fn get_load(&self) -> HashMap<String, f32> {
         let mut loads = HashMap::new();

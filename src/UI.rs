@@ -46,6 +46,24 @@ pub fn ui(f: &mut Frame, app: &App) {
         .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
         .split(chunks[1]);
 
+    //SPlit again for temp and battery life
+    let battery_temp_chunks = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([Constraint::Percentage(50), Constraint::Max(3)])
+        .split(info_chunks[1]);
+
+    // +++++++ Battery Block ++++++++++ //
+    let battery_block = Block::default()
+        .borders(Borders::ALL)
+        .style(Style::default())
+        .title("Battery Percent");
+
+    let battery_percent = Paragraph::new(
+        Text::styled(format!("{}%", app.get_battery_left()), Style::default()))
+            .block(battery_block)
+            .alignment(Alignment::Center);
+
+
     // +++++++ CPUT TEMP BLOCK + PARAGRAPH ++++++++ //
     let temp_block = Block::default()
         .borders(Borders::ALL)
@@ -63,6 +81,8 @@ pub fn ui(f: &mut Frame, app: &App) {
     ))
     .block(temp_block)
     .alignment(Alignment::Center);
+
+    // +++++++ Battery Percentage block +++++++//
 
     // +++++++ CPU LOAD BLOCK + PARAGRAPH  ++++++++ //
     let load_block = Block::default()
@@ -102,7 +122,8 @@ pub fn ui(f: &mut Frame, app: &App) {
     f.render_widget(title, chunks[0]);
     f.render_widget(footer, chunks[2]);
     f.render_widget(load, info_chunks[0]);
-    f.render_widget(temp, info_chunks[1]);
+    f.render_widget(temp, battery_temp_chunks[0]);
+    f.render_widget(battery_percent,battery_temp_chunks[1]);
 }
 
 /// helper function to create a centered rect using up certain percentage of the available rect `r`
