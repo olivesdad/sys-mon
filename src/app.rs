@@ -3,6 +3,7 @@
 */
 extern crate systemstat;
 use crate::events::KeyActions;
+use bytesize::ByteSize;
 use crossterm::event::KeyCode;
 use futures::channel::mpsc::{Receiver, Sender};
 use std::sync::mpsc;
@@ -79,6 +80,20 @@ impl Poller {
                 Err(_) => loads.battery = None,
             }
 
+            // set memory usage
+            match sys.memory() {
+                Ok(mem) => {
+/*                     "\nMemory: {} used / {} ({} bytes) total ({:?})",
+                    saturating_sub_bytes(mem.total, mem.free),
+                    mem.total,
+                    mem.total.as_u64(),
+                    mem.platform_memory; */
+                    loads.mem = Some((saturating_sub_bytes(mem.total, mem.free), mem.total));
+                },
+                Err(_) => loads.mem = None,
+            }
+
+            // Send results
             let res = tx.send(loads);
             if res.is_ok() {
             } else {
@@ -96,6 +111,7 @@ pub struct Loads {
     idle: Option<f32>,
     temp: Option<f32>,
     battery: Option<u8>,
+    mem: Option<(ByteSize, ByteSize)>,
 }
 
 impl Loads {
@@ -108,6 +124,7 @@ impl Loads {
             idle: None,
             temp: None,
             battery: None,
+            mem: None,
         }
     }
 }
@@ -146,7 +163,18 @@ impl App {
             Units::Farenheight => self.load.temp.unwrap_or(9999.9999) * (9.0 / 5.0) + 32.0,
         }
     }
-
+    // Get memory return tuple of used, total maybe string is fine
+    pub fn get_mem(&self) -> (String, String){
+        match self.load.mem {
+            Some(mem) =>{
+                (mem.0.to_string(), mem.1.to_string())
+            },
+            None =>{
+                ("NA".to_owned(), "NA".to_owned())
+            }
+        }
+    }
+    // gets battery as u8
     pub fn get_battery_left(&self) ->u8 {
         if let Some(p) = self.load.battery {
             p

@@ -46,6 +46,12 @@ pub fn ui(f: &mut Frame, app: &App) {
         .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
         .split(chunks[1]);
 
+    // SPLIT chunk 0 for memory an load
+    let loads_mem = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([Constraint::Min(6), Constraint::Max(3)])
+        .split(info_chunks[0]);
+
     //SPlit again for temp and battery life
     let battery_temp_chunks = Layout::default()
         .direction(Direction::Vertical)
@@ -82,7 +88,6 @@ pub fn ui(f: &mut Frame, app: &App) {
     .block(temp_block)
     .alignment(Alignment::Center);
 
-    // +++++++ Battery Percentage block +++++++//
 
     // +++++++ CPU LOAD BLOCK + PARAGRAPH  ++++++++ //
     let load_block = Block::default()
@@ -104,6 +109,19 @@ pub fn ui(f: &mut Frame, app: &App) {
         .block(load_block)
         .alignment(Alignment::Left);
 
+    // ++++++++ MEMORY USAGE BLOCK -++++++++//
+    let mem_block = Block::default()
+        .borders(Borders::ALL)
+        .style(Style::default())
+        .title("Memory Usage");
+
+    let (x, y )= app.get_mem();
+    let memory = Paragraph::new(
+        Text::styled(
+            format!("{} Used / {} Total", x,y),Style::default()))
+            .block(mem_block);
+    
+
     //Quit message box
     let footer_block = Block::default()
         .borders(Borders::ALL)
@@ -121,7 +139,8 @@ pub fn ui(f: &mut Frame, app: &App) {
     // RENDER STUFF
     f.render_widget(title, chunks[0]);
     f.render_widget(footer, chunks[2]);
-    f.render_widget(load, info_chunks[0]);
+    f.render_widget(load, loads_mem[0]);
+    f.render_widget(memory, loads_mem[1]);
     f.render_widget(temp, battery_temp_chunks[0]);
     f.render_widget(battery_percent,battery_temp_chunks[1]);
 }
