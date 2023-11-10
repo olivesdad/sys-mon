@@ -8,7 +8,7 @@ use ratatui::{
     prelude::Alignment,
     style::{Color, Modifier, Style},
     text::Text,
-    widgets::{Block, Borders, Paragraph, Gauge},
+    widgets::{Block, Borders, Gauge, Paragraph},
     Frame,
 };
 
@@ -66,21 +66,21 @@ pub fn ui(f: &mut Frame, app: &App) {
     // Split again
     let battery_space = battery_block.inner(battery_temp_chunks[1]);
     let battery_recs = Layout::default()
-        .constraints([Constraint::Max(3),Constraint::Min(4)])
+        .constraints([Constraint::Max(3), Constraint::Min(4)])
         .split(battery_space);
-    
+
     // Battery widget Paragraph
-    let battery_percent = Paragraph::new(
-        Text::styled(app.get_battery_time(), Style::default()))
-            .alignment(Alignment::Center);
+    let battery_percent = Paragraph::new(Text::styled(app.get_battery_time(), Style::default()))
+        .alignment(Alignment::Center);
 
     // Battery Gauge Widget
     let battery_gauge = Gauge::default()
-        .gauge_style(Style::default()
-            .fg(Color::Green)
-            .bg(Color::DarkGray))
-        .percent(app.get_battery_left() as u16);   
-
+        .gauge_style(
+            Style::default()
+                .fg(app.get_battery_color())
+                .bg(Color::DarkGray),
+        )
+        .percent(app.get_battery_left() as u16);
 
     // +++++++ CPUT TEMP BLOCK + PARAGRAPH ++++++++ //
     let temp_block = Block::default()
@@ -99,7 +99,6 @@ pub fn ui(f: &mut Frame, app: &App) {
     ))
     .block(temp_block)
     .alignment(Alignment::Center);
-
 
     // +++++++ CPU LOAD BLOCK + PARAGRAPH  ++++++++ //
     let load_block = Block::default()
@@ -127,12 +126,12 @@ pub fn ui(f: &mut Frame, app: &App) {
         .style(Style::default())
         .title("Memory Usage");
 
-    let (x, y )= app.get_mem();
-    let memory = Paragraph::new(
-        Text::styled(
-            format!("{} Used / {} Total", x,y),Style::default()))
-            .block(mem_block);
-    
+    let (x, y) = app.get_mem();
+    let memory = Paragraph::new(Text::styled(
+        format!("{} Used / {} Total", x, y),
+        Style::default(),
+    ))
+    .block(mem_block);
 
     //Quit message box
     let footer_block = Block::default()
@@ -154,7 +153,7 @@ pub fn ui(f: &mut Frame, app: &App) {
     f.render_widget(load, loads_mem[0]);
     f.render_widget(memory, loads_mem[1]);
     f.render_widget(temp, battery_temp_chunks[0]);
-    f.render_widget(battery_block,battery_temp_chunks[1]);
+    f.render_widget(battery_block, battery_temp_chunks[1]);
     f.render_widget(battery_percent, battery_recs[0]);
     f.render_widget(battery_gauge, battery_recs[1]);
 }

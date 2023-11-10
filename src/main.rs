@@ -54,17 +54,17 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
     let (tx, rx) = std::sync::mpsc::channel::<Option<events::KeyActions>>();
     let mut kph = events::KeyPressHandler::new(tx);
     app.set_event_handleer(rx);
-    let _event_handler  = thread::spawn(move|| kph.poll());
-    
+    let _event_handler = thread::spawn(move || kph.poll());
+
     // Draw loop
     loop {
         match app.state {
             app::State::quit => break,
-            _ => {},
+            _ => {}
         }
         app.poll();
-        if app.check_keys().is_err(){
-           break;
+        if app.check_keys().is_err() {
+            break;
         }
         //render terminal
         terminal.draw(|f| UI::ui(f, app))?;

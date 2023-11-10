@@ -71,26 +71,39 @@ impl Poller {
             // set battery temp
             match sys.battery_life() {
                 Ok(battery) => {
-                 //   "\nBattery: {}%, {}h{}m remaining",
-                 //   battery.remaining_capacity * 100.0,
-                  let h =  (battery.remaining_time.as_secs() / 3600) as u32;
-                  let m=  (battery.remaining_time.as_secs() % 60) as u32;
-                  loads.battery = Some((battery.remaining_capacity * 100.0) as u8 );
-                  loads.battery_time = Some((h,m));
-                },
+                    //   "\nBattery: {}%, {}h{}m remaining",
+                    //   battery.remaining_capacity * 100.0,
+                    let h = (battery.remaining_time.as_secs() / 3600) as u32;
+                    let m = (battery.remaining_time.as_secs() % 60) as u32;
+                    loads.battery = Some((battery.remaining_capacity * 100.0) as u8);
+                    loads.battery_time = Some((h, m));
+
+                    // set the battery color
+                    if let Some(x) = &loads.battery {
+                        if *x >= 65 {
+                            loads.battery_color = ratatui::style::Color::LightGreen;
+                        } else if *x < 65 && *x >= 25 {
+                            loads.battery_color = ratatui::style::Color::LightYellow;
+                        } else {
+                            loads.battery_color = ratatui::style::Color::Red;
+                        }
+                    } else {
+                        loads.battery_color = ratatui::style::Color::Red;
+                    }
+                }
                 Err(_) => loads.battery = None,
             }
 
             // set memory usage
             match sys.memory() {
                 Ok(mem) => {
-/*                     "\nMemory: {} used / {} ({} bytes) total ({:?})",
+                    /*                     "\nMemory: {} used / {} ({} bytes) total ({:?})",
                     saturating_sub_bytes(mem.total, mem.free),
                     mem.total,
                     mem.total.as_u64(),
                     mem.platform_memory; */
                     loads.mem = Some((saturating_sub_bytes(mem.total, mem.free), mem.total));
-                },
+                }
                 Err(_) => loads.mem = None,
             }
 
@@ -114,6 +127,7 @@ pub struct Loads {
     battery: Option<u8>,
     mem: Option<(ByteSize, ByteSize)>,
     battery_time: Option<(u32, u32)>,
+    battery_color: ratatui::style::Color,
 }
 
 impl Loads {
@@ -128,13 +142,14 @@ impl Loads {
             battery: None,
             mem: None,
             battery_time: None,
+            battery_color: ratatui::style::Color::Red,
         }
     }
 }
 
 //this struct should handlle the state of the app
 pub struct App {
-    load: Loads,
+    pub load: Loads,
     pub units: Units,
     pub state: State,
     reciever: Option<mpsc::Receiver<Loads>>,
@@ -166,19 +181,19 @@ impl App {
             Units::Farenheight => self.load.temp.unwrap_or(9999.9999) * (9.0 / 5.0) + 32.0,
         }
     }
+
+    pub fn get_battery_color(&self) -> ratatui::style::Color {
+        self.load.battery_color
+    }
     // Get memory return tuple of used, total maybe string is fine
-    pub fn get_mem(&self) -> (String, String){
+    pub fn get_mem(&self) -> (String, String) {
         match self.load.mem {
-            Some(mem) =>{
-                (mem.0.to_string(), mem.1.to_string())
-            },
-            None =>{
-                ("NA".to_owned(), "NA".to_owned())
-            }
+            Some(mem) => (mem.0.to_string(), mem.1.to_string()),
+            None => ("NA".to_owned(), "NA".to_owned()),
         }
     }
     // gets battery as u8
-    pub fn get_battery_left(&self) ->u8 {
+    pub fn get_battery_left(&self) -> u8 {
         if let Some(p) = self.load.battery {
             p
         } else {
@@ -187,8 +202,8 @@ impl App {
     }
 
     //Get battery time left
-    pub fn get_battery_time(&self)-> String {
-        if let Some((h,m)) = self.load.battery_time {
+    pub fn get_battery_time(&self) -> String {
+        if let Some((h, m)) = self.load.battery_time {
             format!("Time Remaining: {}h {}m", h, m)
         } else {
             "Err".to_owned()
