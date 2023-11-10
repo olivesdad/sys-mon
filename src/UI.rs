@@ -8,7 +8,7 @@ use ratatui::{
     prelude::Alignment,
     style::{Color, Modifier, Style},
     text::Text,
-    widgets::{Block, Borders, Paragraph},
+    widgets::{Block, Borders, Paragraph, Gauge},
     Frame,
 };
 
@@ -55,7 +55,7 @@ pub fn ui(f: &mut Frame, app: &App) {
     //SPlit again for temp and battery life
     let battery_temp_chunks = Layout::default()
         .direction(Direction::Vertical)
-        .constraints([Constraint::Percentage(50), Constraint::Max(3)])
+        .constraints([Constraint::Percentage(50), Constraint::Max(7)])
         .split(info_chunks[1]);
 
     // +++++++ Battery Block ++++++++++ //
@@ -63,11 +63,23 @@ pub fn ui(f: &mut Frame, app: &App) {
         .borders(Borders::ALL)
         .style(Style::default())
         .title("Battery Percent");
-
+    // Split again
+    let battery_space = battery_block.inner(battery_temp_chunks[1]);
+    let battery_recs = Layout::default()
+        .constraints([Constraint::Max(3),Constraint::Min(4)])
+        .split(battery_space);
+    
+    // Battery widget Paragraph
     let battery_percent = Paragraph::new(
-        Text::styled(format!("{}%", app.get_battery_left()), Style::default()))
-            .block(battery_block)
+        Text::styled(app.get_battery_time(), Style::default()))
             .alignment(Alignment::Center);
+
+    // Battery Gauge Widget
+    let battery_gauge = Gauge::default()
+        .gauge_style(Style::default()
+            .fg(Color::Green)
+            .bg(Color::DarkGray))
+        .percent(app.get_battery_left() as u16);   
 
 
     // +++++++ CPUT TEMP BLOCK + PARAGRAPH ++++++++ //
@@ -142,7 +154,9 @@ pub fn ui(f: &mut Frame, app: &App) {
     f.render_widget(load, loads_mem[0]);
     f.render_widget(memory, loads_mem[1]);
     f.render_widget(temp, battery_temp_chunks[0]);
-    f.render_widget(battery_percent,battery_temp_chunks[1]);
+    f.render_widget(battery_block,battery_temp_chunks[1]);
+    f.render_widget(battery_percent, battery_recs[0]);
+    f.render_widget(battery_gauge, battery_recs[1]);
 }
 
 /// helper function to create a centered rect using up certain percentage of the available rect `r`
