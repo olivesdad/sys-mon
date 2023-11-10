@@ -85,7 +85,7 @@ impl Poller {
                         } else if *x < 65 && *x >= 25 {
                             loads.battery_color = ratatui::style::Color::LightYellow;
                         } else {
-                            loads.battery_color = ratatui::style::Color::Red;
+                            loads.battery_color = ratatui::style::Color::LightRed;
                         }
                     } else {
                         loads.battery_color = ratatui::style::Color::Red;
