@@ -8,7 +8,7 @@ use ratatui::{
     prelude::Alignment,
     style::{Color, Modifier, Style},
     text::Text,
-    widgets::{Block, Borders, Gauge, Paragraph},
+    widgets::{Block, Borders, Gauge, Paragraph, BarChart, Padding},
     Frame,
 };
 
@@ -31,7 +31,7 @@ pub fn ui(f: &mut Frame, app: &App) {
     let title_block = Block::default()
         .borders(Borders::ALL)
         .style(Style::default())
-        .title("OOga Booga");
+        .title(" OOga Booga ");
     // Paragraph widget takes ownership of title_block
     let title = Paragraph::new(Text::styled(
         "system stats",
@@ -62,7 +62,7 @@ pub fn ui(f: &mut Frame, app: &App) {
     let battery_block = Block::default()
         .borders(Borders::ALL)
         .style(Style::default())
-        .title("Battery Percent");
+        .title(" Battery 🔋 ");
     // Split again
     let battery_space = battery_block.inner(battery_temp_chunks[1]);
     let battery_recs = Layout::default()
@@ -86,7 +86,7 @@ pub fn ui(f: &mut Frame, app: &App) {
     let temp_block = Block::default()
         .borders(Borders::ALL)
         .style(Style::default())
-        .title("CPU Temperature");
+        .title(" CPU Temperature 🔥 ");
     // unit char
     let unit = match app.units {
         Units::Celcius => "C",
@@ -101,30 +101,47 @@ pub fn ui(f: &mut Frame, app: &App) {
     .alignment(Alignment::Center);
 
     // +++++++ CPU LOAD BLOCK + PARAGRAPH  ++++++++ //
+    
+    // BLOCK FOR LOADS TO BE RENDERED IN >>>>> battery_temp_chunks[1]
     let load_block = Block::default()
         .borders(Borders::ALL)
         .style(Style::default())
-        .title("System Load");
-
-    // Lines for loads
+        .title(" System Load (%)🏋️  ");
+    
+    let load_bars_block = Block::default()
+    .borders(Borders::NONE)
+    .style(Style::default())
+    .padding(Padding::new(3,3,1,1));
+    
+    // Barchart loadas
     let loads = app.get_load();
-    let load_lines = vec![
-        format!("nice: {}%", loads.get("nice").unwrap()).into(),
-        format!("user: {}%", loads.get("user").unwrap()).into(),
-        format!("system {}%", loads.get("system").unwrap()).into(),
-        format!("interrupt: {}%", loads.get("interrupt").unwrap()).into(),
-        format!("idle: {}%", loads.get("idle").unwrap()).into(),
-    ];
+    let load_bars = BarChart::default()
+        .data(&[
+            ("nice", *loads.get("nice").unwrap() as u64),
+            ("user", *loads.get("user").unwrap() as u64),
+            ("system", *loads.get("system").unwrap() as u64),
+            ("interrupt", *loads.get("interrupt").unwrap() as u64),
+            ("idle", *loads.get("idle").unwrap() as u64),
+        ])
+        .bar_width(5)
+        .max(100).block(load_bars_block);
+    
+    // Split battery chunks 1 to center chart
 
-    let load = Paragraph::new(load_lines)
-        .block(load_block)
-        .alignment(Alignment::Left);
-
+    // I need the width to find center
+    let w = loads_mem[0].width;
+    let load_bars_chunks = Layout::default()
+            .direction(Direction::Horizontal)
+            .constraints([
+                Constraint::Max((&w - 35)/2),
+                Constraint::Min(35),
+                Constraint::Max((&w - 35)/2),
+            ]).split(loads_mem[0]);
     // ++++++++ MEMORY USAGE BLOCK -++++++++//
     let mem_block = Block::default()
         .borders(Borders::ALL)
         .style(Style::default())
-        .title("Memory Usage");
+        .title(" Memory Usage 🧠 ");
 
     let (x, y) = app.get_mem();
     let memory = Paragraph::new(Text::styled(
@@ -150,33 +167,11 @@ pub fn ui(f: &mut Frame, app: &App) {
     // RENDER STUFF
     f.render_widget(title, chunks[0]);
     f.render_widget(footer, chunks[2]);
-    f.render_widget(load, loads_mem[0]);
+    f.render_widget(load_block, loads_mem[0]);
+    f.render_widget(load_bars, load_bars_chunks[1]);
     f.render_widget(memory, loads_mem[1]);
     f.render_widget(temp, battery_temp_chunks[0]);
     f.render_widget(battery_block, battery_temp_chunks[1]);
     f.render_widget(battery_percent, battery_recs[0]);
     f.render_widget(battery_gauge, battery_recs[1]);
-}
-
-/// helper function to create a centered rect using up certain percentage of the available rect `r`
-fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
-    // Cut the given rectangle into three vertical pieces
-    let popup_layout = Layout::default()
-        .direction(Direction::Vertical)
-        .constraints([
-            Constraint::Percentage((100 - percent_y) / 2),
-            Constraint::Percentage(percent_y),
-            Constraint::Percentage((100 - percent_y) / 2),
-        ])
-        .split(r);
-
-    // Then cut the middle vertical piece into three width-wise pieces
-    Layout::default()
-        .direction(Direction::Horizontal)
-        .constraints([
-            Constraint::Percentage((100 - percent_x) / 2),
-            Constraint::Percentage(percent_x),
-            Constraint::Percentage((100 - percent_x) / 2),
-        ])
-        .split(popup_layout[1])[1] // Return the middle chunk
 }
