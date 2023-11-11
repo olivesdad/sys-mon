@@ -6,6 +6,7 @@ use crate::events::KeyActions;
 use bytesize::ByteSize;
 use crossterm::event::KeyCode;
 use futures::channel::mpsc::{Receiver, Sender};
+use std::collections::VecDeque;
 use std::sync::mpsc;
 use std::sync::mpsc::channel;
 use std::time::Duration;
@@ -117,10 +118,6 @@ impl Poller {
     }
 }
 
-pub enum ScreenMode {
-    Normal,
-    TooSmall,
-}
 
 pub struct Loads {
     nice: Option<f32>,
@@ -156,8 +153,8 @@ impl Loads {
 pub struct App {
     pub load: Loads,
     pub units: Units,
-    pub screen_mode: ScreenMode,
     pub state: State,
+    temp_vec: Vec<(f64, f32)>,
     reciever: Option<mpsc::Receiver<Loads>>,
     event_handler: Option<mpsc::Receiver<Option<KeyActions>>>,
 }
@@ -169,7 +166,7 @@ impl App {
             units: Units::Celcius,
             state: State::run,
             reciever: None,
-            screen_mode: ScreenMode::Normal,
+            temp_vec: Vec::new(),
             event_handler: None,
         }
     }
@@ -239,6 +236,7 @@ impl App {
             //pull load off channel
             Some(rx) => {
                 if let Ok(loads) = rx.recv_timeout(Duration::from_millis(250)) {
+                    self.temp_vec.push((self.temp_vec.len() as f64, loads.temp.unwrap_or(0.0) as f32));
                     self.load = loads;
                 }
             }
