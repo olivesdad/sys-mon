@@ -18,7 +18,7 @@ use ratatui::{
 pub fn ui(f: &mut Frame, app: &App) {
     // If the Frame is too small just render warning so that we dont panic
     let w = f.size();
-    if w.width < 70 || w.height < 20 {
+    if w.width < 70 || w.height < 15 {
         let rect = centered_rect(f.size(), 50, 50);
         let warning = Paragraph::new(Text::styled("Window is too small 😵", Style::default()))
             .alignment(Alignment::Center)
