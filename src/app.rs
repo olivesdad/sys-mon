@@ -117,6 +117,11 @@ impl Poller {
     }
 }
 
+pub enum ScreenMode {
+    Normal,
+    TooSmall,
+}
+
 pub struct Loads {
     nice: Option<f32>,
     user: Option<f32>,
@@ -151,6 +156,7 @@ impl Loads {
 pub struct App {
     pub load: Loads,
     pub units: Units,
+    pub screen_mode: ScreenMode,
     pub state: State,
     reciever: Option<mpsc::Receiver<Loads>>,
     event_handler: Option<mpsc::Receiver<Option<KeyActions>>>,
@@ -163,6 +169,7 @@ impl App {
             units: Units::Celcius,
             state: State::run,
             reciever: None,
+            screen_mode: ScreenMode::Normal,
             event_handler: None,
         }
     }

@@ -8,7 +8,7 @@ use ratatui::{
     prelude::Alignment,
     style::{Color, Modifier, Style},
     text::Text,
-    widgets::{Block, Borders, Gauge, Paragraph, BarChart, Padding},
+    widgets::{BarChart, Block, Borders, Gauge, Padding, Paragraph, Wrap},
     Frame,
 };
 
@@ -16,6 +16,29 @@ use ratatui::{
 // passed as a closure to the draw function which passes the frame size to it.
 // We also pass an app reference to it so we can query the state of hte world
 pub fn ui(f: &mut Frame, app: &App) {
+    // If the Frame is too small just render warning so that we dont panic
+    let w = f.size();
+    if w.width < 70 || w.height < 20 {
+        let rect = centered_rect(f.size(), 50, 50);
+        let warning = Paragraph::new(Text::styled("Window is too small 😵", Style::default()))
+            .alignment(Alignment::Center)
+            .wrap(Wrap { trim: true });
+
+        // Block
+        let block = Block::default()
+            .borders(Borders::all())
+            .title(format!(" Width: {}, Height: {} ", &w.width, w.height));
+        //innter rect
+        let inner = centered_rect(block.inner(rect), 50, 50);
+
+        // Render
+        f.render_widget(block, rect);
+        f.render_widget(warning, inner);
+        return;
+    }
+
+    // Start main screen here vvvvv
+
     // Sections
     let chunks = Layout::default()
         .direction(Direction::Vertical)
@@ -101,18 +124,18 @@ pub fn ui(f: &mut Frame, app: &App) {
     .alignment(Alignment::Center);
 
     // +++++++ CPU LOAD BLOCK + PARAGRAPH  ++++++++ //
-    
+
     // BLOCK FOR LOADS TO BE RENDERED IN >>>>> battery_temp_chunks[1]
     let load_block = Block::default()
         .borders(Borders::ALL)
         .style(Style::default())
         .title(" System Load (%)🏋️  ");
-    
+
     let load_bars_block = Block::default()
-    .borders(Borders::NONE)
-    .style(Style::default())
-    .padding(Padding::new(3,3,1,1));
-    
+        .borders(Borders::NONE)
+        .style(Style::default())
+        .padding(Padding::new(3, 3, 1, 1));
+
     // Barchart loadas
     let loads = app.get_load();
     let load_bars = BarChart::default()
@@ -124,19 +147,21 @@ pub fn ui(f: &mut Frame, app: &App) {
             ("idle", *loads.get("idle").unwrap() as u64),
         ])
         .bar_width(5)
-        .max(100).block(load_bars_block);
-    
+        .max(100)
+        .block(load_bars_block);
+
     // Split battery chunks 1 to center chart
 
     // I need the width to find center
     let w = loads_mem[0].width;
     let load_bars_chunks = Layout::default()
-            .direction(Direction::Horizontal)
-            .constraints([
-                Constraint::Max((&w - 35)/2),
-                Constraint::Min(35),
-                Constraint::Max((&w - 35)/2),
-            ]).split(loads_mem[0]);
+        .direction(Direction::Horizontal)
+        .constraints([
+            Constraint::Max((&w - 35) / 2),
+            Constraint::Min(35),
+            Constraint::Max((&w - 35) / 2),
+        ])
+        .split(loads_mem[0]);
     // ++++++++ MEMORY USAGE BLOCK -++++++++//
     let mem_block = Block::default()
         .borders(Borders::ALL)
@@ -174,4 +199,29 @@ pub fn ui(f: &mut Frame, app: &App) {
     f.render_widget(battery_block, battery_temp_chunks[1]);
     f.render_widget(battery_percent, battery_recs[0]);
     f.render_widget(battery_gauge, battery_recs[1]);
+}
+
+/// # Usage
+///
+/// ```rust
+/// let rect = centered_rect(f.size(), 50, 50);
+/// ```
+fn centered_rect(r: Rect, percent_x: u16, percent_y: u16) -> Rect {
+    let popup_layout = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([
+            Constraint::Percentage((100 - percent_y) / 2),
+            Constraint::Percentage(percent_y),
+            Constraint::Percentage((100 - percent_y) / 2),
+        ])
+        .split(r);
+
+    Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints([
+            Constraint::Percentage((100 - percent_x) / 2),
+            Constraint::Percentage(percent_x),
+            Constraint::Percentage((100 - percent_x) / 2),
+        ])
+        .split(popup_layout[1])[1]
 }
