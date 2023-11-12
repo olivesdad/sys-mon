@@ -6,8 +6,9 @@ use crossterm::event::KeyCode;
 use std::sync::mpsc;
 
 pub enum KeyActions {
-    quit,
-    toggle_units,
+    Quit,
+    ToggleUnits,
+    ClearTemp,
 }
 pub struct KeyPressHandler {
     tick_rate: std::time::Duration,
@@ -36,10 +37,13 @@ impl KeyPressHandler {
                         // We only care about tab and q
                         match key.code {
                             KeyCode::Tab => {
-                                channel_status = self.sender.send(Some(KeyActions::toggle_units))
+                                channel_status = self.sender.send(Some(KeyActions::ToggleUnits))
                             }
-                            KeyCode::Char('q') => {
-                                channel_status = self.sender.send(Some(KeyActions::quit))
+                            KeyCode::Char('q') | KeyCode::Char('Q') => {
+                                channel_status = self.sender.send(Some(KeyActions::Quit))
+                            }
+                            KeyCode::Char('C') | KeyCode::Char('c') => {
+                                channel_status = self.sender.send(Some(KeyActions::ClearTemp))
                             }
                             //Just send None if its a key we dont care about
                             _ => channel_status = self.sender.send(None),

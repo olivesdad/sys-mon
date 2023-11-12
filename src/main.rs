@@ -59,7 +59,7 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
     // Draw loop
     loop {
         match app.state {
-            app::State::quit => break,
+            app::State::Quit => break,
             _ => {}
         }
         app.poll();

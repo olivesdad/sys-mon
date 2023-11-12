@@ -4,24 +4,23 @@
 extern crate systemstat;
 use crate::events::KeyActions;
 use bytesize::ByteSize;
-use crossterm::event::KeyCode;
-use futures::channel::mpsc::{Receiver, Sender};
-use std::collections::VecDeque;
 use std::sync::mpsc;
-use std::sync::mpsc::channel;
 use std::time::Duration;
 use std::{collections::HashMap, thread};
 use systemstat::{saturating_sub_bytes, Platform, System};
 
-//track which screen is being used
 pub enum Units {
     Celcius,
     Farenheight,
 }
 
+pub enum GraphType {
+    SparkLine,
+    Scatter,
+}
 pub enum State {
-    run,
-    quit,
+    Run,
+    Quit,
 }
 
 // Poller to check syst monitor
@@ -72,8 +71,7 @@ impl Poller {
             // set battery temp
             match sys.battery_life() {
                 Ok(battery) => {
-                    //   "\nBattery: {}%, {}h{}m remaining",
-                    //   battery.remaining_capacity * 100.0,
+
                     let h = (battery.remaining_time.as_secs() / 3600) as u32;
                     let m = (battery.remaining_time.as_secs() % 60) as u32;
                     loads.battery = Some((battery.remaining_capacity * 100.0) as u8);
@@ -98,11 +96,6 @@ impl Poller {
             // set memory usage
             match sys.memory() {
                 Ok(mem) => {
-                    /*                     "\nMemory: {} used / {} ({} bytes) total ({:?})",
-                    saturating_sub_bytes(mem.total, mem.free),
-                    mem.total,
-                    mem.total.as_u64(),
-                    mem.platform_memory; */
                     loads.mem = Some((saturating_sub_bytes(mem.total, mem.free), mem.total));
                 }
                 Err(_) => loads.mem = None,
@@ -153,6 +146,7 @@ pub struct App {
     pub load: Loads,
     pub units: Units,
     pub state: State,
+    pub graph: GraphType,
     temp_vec: Vec<(f64, f64)>,
     reciever: Option<mpsc::Receiver<Loads>>,
     event_handler: Option<mpsc::Receiver<Option<KeyActions>>>,
@@ -163,8 +157,9 @@ impl App {
         App {
             load: Loads::new(),
             units: Units::Celcius,
-            state: State::run,
+            state: State::Run,
             reciever: None,
+            graph: GraphType::Scatter,
             temp_vec: Vec::new(),
             event_handler: None,
         }
@@ -185,7 +180,7 @@ impl App {
         }
     }
 
-    // returns a reference to our vector of temp points....
+    // returns a slice of our vector of temp points....
     pub fn get_temp_points(&self) -> &[(f64, f64)] {
         let slice = &self.temp_vec[0..(self.temp_vec.len())];
         slice.try_into().unwrap()
@@ -241,8 +236,16 @@ impl App {
             //pull load off channel
             Some(rx) => {
                 if let Ok(loads) = rx.recv_timeout(Duration::from_millis(250)) {
+
+                    // Temp Vector for chart. Going to limit data points to 10k so we dont just eat memory
+                    if self.temp_vec.len() > 10000 {
+                        self.temp_vec = Vec::new();
+                    }
+                    // push new value on
                     self.temp_vec
                         .push((self.temp_vec.len() as f64, loads.temp.unwrap_or(0.0) as f64));
+
+                    // Replace Loads struct 
                     self.load = loads;
                 }
             }
@@ -263,14 +266,17 @@ impl App {
                         Err(_) => got_message = false,
                         Ok(msg) => match msg {
                             Some(key) => match key {
-                                KeyActions::quit => {
-                                    self.state = State::quit;
+                                KeyActions::Quit => {
+                                    self.state = State::Quit;
                                     got_message = false;
                                 }
-                                KeyActions::toggle_units => match self.units {
+                                KeyActions::ToggleUnits => match self.units {
                                     Units::Celcius => self.units = Units::Farenheight,
                                     Units::Farenheight => self.units = Units::Celcius,
                                 },
+                                KeyActions::ClearTemp => {
+                                    self.temp_vec = Vec::new();
+                                }
                             },
                             None => {}
                         },

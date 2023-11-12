@@ -109,12 +109,13 @@ pub fn ui(f: &mut Frame, app: &App) {
         )
         .percent(app.get_battery_left() as u16);
 
-    // ++++++++++++ CPUT TEMP BLOCK + PARAGRAPH ++++++++++++ //
+    // ++++++++++++ CPUT TEMP ++++++++++++ //
     let temp_block = Block::default()
         .borders(Borders::ALL)
         .style(Style::default())
         .title(" CPU Temperature 🔥 ");
-    // unit char
+    
+    // Match units to decide what to display the digital thing in
     let unit = match app.units {
         Units::Celcius => "C",
         Units::Farenheight => "F",
@@ -218,7 +219,7 @@ pub fn ui(f: &mut Frame, app: &App) {
         .style(Style::default().bg(Color::LightYellow));
     // Quit paragraph
     let footer = Paragraph::new(Text::styled(
-        "Press 'Q' to quit, 'TAB' to change units",
+        "Press 'Q' to quit, 'TAB' to change units, 'C' to clear temp history",
         Style::default()
             .fg(Color::DarkGray)
             .bg(Color::LightYellow)
