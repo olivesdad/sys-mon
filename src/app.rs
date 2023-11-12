@@ -154,7 +154,7 @@ pub struct App {
     pub load: Loads,
     pub units: Units,
     pub state: State,
-    temp_vec: Vec<(f64, f32)>,
+    temp_vec: Vec<(f64, f64)>,
     reciever: Option<mpsc::Receiver<Loads>>,
     event_handler: Option<mpsc::Receiver<Option<KeyActions>>>,
 }
@@ -184,6 +184,12 @@ impl App {
             Units::Celcius => self.load.temp.unwrap_or(9999.9999),
             Units::Farenheight => self.load.temp.unwrap_or(9999.9999) * (9.0 / 5.0) + 32.0,
         }
+    }
+
+    // returns a reference to our vector of temp points....
+    pub fn get_temp_points(&self) ->&[(f64,f64)] {
+        let slice = &self.temp_vec[0..(self.temp_vec.len())];
+        slice.try_into().unwrap()
     }
 
     pub fn get_battery_color(&self) -> ratatui::style::Color {
@@ -236,7 +242,7 @@ impl App {
             //pull load off channel
             Some(rx) => {
                 if let Ok(loads) = rx.recv_timeout(Duration::from_millis(250)) {
-                    self.temp_vec.push((self.temp_vec.len() as f64, loads.temp.unwrap_or(0.0) as f32));
+                    self.temp_vec.push((self.temp_vec.len() as f64, loads.temp.unwrap_or(0.0) as f64));
                     self.load = loads;
                 }
             }
