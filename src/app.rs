@@ -118,7 +118,6 @@ impl Poller {
     }
 }
 
-
 pub struct Loads {
     nice: Option<f32>,
     user: Option<f32>,
@@ -187,7 +186,7 @@ impl App {
     }
 
     // returns a reference to our vector of temp points....
-    pub fn get_temp_points(&self) ->&[(f64,f64)] {
+    pub fn get_temp_points(&self) -> &[(f64, f64)] {
         let slice = &self.temp_vec[0..(self.temp_vec.len())];
         slice.try_into().unwrap()
     }
@@ -242,7 +241,8 @@ impl App {
             //pull load off channel
             Some(rx) => {
                 if let Ok(loads) = rx.recv_timeout(Duration::from_millis(250)) {
-                    self.temp_vec.push((self.temp_vec.len() as f64, loads.temp.unwrap_or(0.0) as f64));
+                    self.temp_vec
+                        .push((self.temp_vec.len() as f64, loads.temp.unwrap_or(0.0) as f64));
                     self.load = loads;
                 }
             }

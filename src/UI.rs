@@ -7,9 +7,12 @@ use ratatui::{
     layout::{Constraint, Direction, Layout, Rect},
     prelude::Alignment,
     style::{Color, Modifier, Style},
-    text::{Text, Span},
-    widgets::{BarChart,Chart, Block, Borders, Gauge, Padding, Paragraph, Wrap, Dataset, GraphType, Axis},
-    Frame, symbols,
+    symbols,
+    text::{Span, Text},
+    widgets::{
+        Axis, BarChart, Block, Borders, Chart, Dataset, Gauge, GraphType, Padding, Paragraph, Wrap,
+    },
+    Frame,
 };
 
 // Main function used to render the UI.
@@ -63,7 +66,7 @@ pub fn ui(f: &mut Frame, app: &App) {
     .block(title_block)
     .alignment(Alignment::Center);
 
-//-----------------------------------------------------//
+    //-----------------------------------------------------//
     // SPlit in 2 blocks for info
     let info_chunks = Layout::default()
         .direction(Direction::Horizontal)
@@ -81,8 +84,6 @@ pub fn ui(f: &mut Frame, app: &App) {
         .direction(Direction::Vertical)
         .constraints([Constraint::Percentage(50), Constraint::Max(7)])
         .split(info_chunks[1]);
-
-
 
     //////  +++++++++++ Battery Block ++++++++++++++ ////////
     let battery_block = Block::default()
@@ -108,8 +109,6 @@ pub fn ui(f: &mut Frame, app: &App) {
         )
         .percent(app.get_battery_left() as u16);
 
-
-
     // ++++++++++++ CPUT TEMP BLOCK + PARAGRAPH ++++++++++++ //
     let temp_block = Block::default()
         .borders(Borders::ALL)
@@ -129,39 +128,38 @@ pub fn ui(f: &mut Frame, app: &App) {
 
     // CHART FOR TEMP
     // DATATSET
-    let dataset = vec![
-        Dataset::default()
-            .marker(symbols::Marker::Dot)
-            .graph_type(GraphType::Line)
-            .style(Style::default().fg(Color::LightBlue))
-            .data(app.get_temp_points()),
-    ];
+    let dataset = vec![Dataset::default()
+        .marker(symbols::Marker::Dot)
+        .graph_type(GraphType::Line)
+        .style(Style::default().fg(Color::LightBlue))
+        .data(app.get_temp_points())];
     let chart = Chart::new(dataset)
-            .x_axis(Axis::default()
+        .x_axis(
+            Axis::default()
                 .title("")
                 .style(Style::default())
-                .bounds([0.0, app.get_temp_points().len() as f64])
-            )
-            .y_axis(Axis::default()
+                .bounds([0.0, app.get_temp_points().len() as f64]),
+        )
+        .y_axis(
+            Axis::default()
                 .title("Temp (C)")
                 .style(Style::default())
                 .bounds([0.0, 120.0])
-                .labels([
-                    "0", "20", "40", "60", "80", "100", "120"
-                ].iter().cloned().map(Span::from).collect())
+                .labels(
+                    ["0", "20", "40", "60", "80", "100", "120"]
+                        .iter()
+                        .cloned()
+                        .map(Span::from)
+                        .collect(),
+                ),
         );
-            
 
     let temp_inner = temp_block.inner(battery_temp_chunks[0]);
     let temp_chunks = Layout::default()
-        .constraints([
-            Constraint::Max(3),
-            Constraint::Min(10),
-        ])
+        .constraints([Constraint::Max(3), Constraint::Min(10)])
         .direction(Direction::Vertical)
         .split(temp_inner);
 
-    
     // +++++++ CPU LOAD BLOCK + PARAGRAPH  ++++++++ //
 
     // BLOCK FOR LOADS TO BE RENDERED IN >>>>> battery_temp_chunks[1]
