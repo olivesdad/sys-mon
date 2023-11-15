@@ -147,6 +147,7 @@ pub struct App {
     pub state: State,
     pub graph: GraphType,
     temp_vec: Vec<(f64, f64)>,
+    temp_vec_f: Vec<(f64, f64)>,
     reciever: Option<mpsc::Receiver<Loads>>,
     event_handler: Option<mpsc::Receiver<Option<KeyActions>>>,
 }
@@ -160,6 +161,7 @@ impl App {
             reciever: None,
             graph: GraphType::Scatter,
             temp_vec: Vec::new(),
+            temp_vec_f: Vec::new(),
             event_handler: None,
         }
     }
@@ -180,10 +182,19 @@ impl App {
     }
 
     // returns a slice of our vector of temp points....
-    pub fn get_temp_points(&self) -> &[(f64, f64)] {
-        let slice = &self.temp_vec[0..(self.temp_vec.len())];
-        slice.try_into().unwrap()
-    }
+    pub fn get_temp_points<'a>(&'a self) -> &'a[(f64, f64)] {
+        match self.units {
+           Units::Celcius => {
+            let slice = &self.temp_vec[0..(self.temp_vec.len())];
+            slice.try_into().unwrap()
+           },
+           Units::Fahrenheit => {
+            let slice = &self.temp_vec_f[0..(self.temp_vec.len())];
+            slice.try_into().unwrap()
+            },
+           }
+        }
+    
 
     pub fn get_battery_color(&self) -> ratatui::style::Color {
         self.load.battery_color
@@ -242,7 +253,8 @@ impl App {
                     // push new value on
                     self.temp_vec
                         .push((self.temp_vec.len() as f64, loads.temp.unwrap_or(0.0) as f64));
-
+                    self.temp_vec_f
+                        .push((self.temp_vec_f.len() as f64, ((loads.temp.unwrap_or(0.0)*9.0/5.0) + 32.0) as f64));
                     // Replace Loads struct
                     self.load = loads;
                 }
