@@ -11,7 +11,7 @@ use systemstat::{saturating_sub_bytes, Platform, System};
 
 pub enum Units {
     Celcius,
-    Farenheight,
+    Fahrenheit,
 }
 
 pub enum GraphType {
@@ -71,7 +71,6 @@ impl Poller {
             // set battery temp
             match sys.battery_life() {
                 Ok(battery) => {
-
                     let h = (battery.remaining_time.as_secs() / 3600) as u32;
                     let m = (battery.remaining_time.as_secs() % 60) as u32;
                     loads.battery = Some((battery.remaining_capacity * 100.0) as u8);
@@ -176,7 +175,7 @@ impl App {
     pub fn get_temp(&self) -> f32 {
         match self.units {
             Units::Celcius => self.load.temp.unwrap_or(9999.9999),
-            Units::Farenheight => self.load.temp.unwrap_or(9999.9999) * (9.0 / 5.0) + 32.0,
+            Units::Fahrenheit => self.load.temp.unwrap_or(9999.9999) * (9.0 / 5.0) + 32.0,
         }
     }
 
@@ -236,7 +235,6 @@ impl App {
             //pull load off channel
             Some(rx) => {
                 if let Ok(loads) = rx.recv_timeout(Duration::from_millis(250)) {
-
                     // Temp Vector for chart. Going to limit data points to 10k so we dont just eat memory
                     if self.temp_vec.len() > 10000 {
                         self.temp_vec = Vec::new();
@@ -245,7 +243,7 @@ impl App {
                     self.temp_vec
                         .push((self.temp_vec.len() as f64, loads.temp.unwrap_or(0.0) as f64));
 
-                    // Replace Loads struct 
+                    // Replace Loads struct
                     self.load = loads;
                 }
             }
@@ -271,8 +269,8 @@ impl App {
                                     got_message = false;
                                 }
                                 KeyActions::ToggleUnits => match self.units {
-                                    Units::Celcius => self.units = Units::Farenheight,
-                                    Units::Farenheight => self.units = Units::Celcius,
+                                    Units::Celcius => self.units = Units::Fahrenheit,
+                                    Units::Fahrenheit => self.units = Units::Celcius,
                                 },
                                 KeyActions::ClearTemp => {
                                     self.temp_vec = Vec::new();

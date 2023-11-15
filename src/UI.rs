@@ -114,11 +114,11 @@ pub fn ui(f: &mut Frame, app: &App) {
         .borders(Borders::ALL)
         .style(Style::default())
         .title(" CPU Temperature 🔥 ");
-    
+
     // Match units to decide what to display the digital thing in
     let unit = match app.units {
         Units::Celcius => "C",
-        Units::Farenheight => "F",
+        Units::Fahrenheit => "F",
     };
 
     let temp = Paragraph::new(Text::styled(
