@@ -143,7 +143,7 @@ pub fn ui(f: &mut Frame, app: &App) {
         )
         .y_axis(
             Axis::default()
-                .title("Temp (C)")
+                .title(format!("Temp ({unit})"))
                 .style(Style::default())
                 .bounds([0.0, 120.0])
                 .labels(
