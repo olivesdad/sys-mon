@@ -224,19 +224,18 @@ impl App {
         }
     }
     pub fn is_on_ac_power(&self) -> bool {
-        if let Some(p) = self.load.ac_power {
-            true
-        } else {
-            false
+        match self.load.ac_power {
+            Some(p) => p,
+            None => false,
         }
     }
 
     //Get battery time left
     pub fn get_battery_time(&self) -> String {
         if let Some((h, m)) = self.load.battery_time {
-            format!("Time Remaining: {}h {}m", h, m)
+            format!("time remaining: {}h {}m", h, m)
         } else {
-            "Err".to_owned()
+            "err".to_owned()
         }
     }
 
