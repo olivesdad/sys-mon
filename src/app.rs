@@ -233,9 +233,9 @@ impl App {
     //Get battery time left
     pub fn get_battery_time(&self) -> String {
         if let Some((h, m)) = self.load.battery_time {
-            format!("time remaining: {}h {}m", h, m)
+            format!("Time Remaining: {}h {}m", h, m)
         } else {
-            "err".to_owned()
+            "~rr".to_owned()
         }
     }
 
