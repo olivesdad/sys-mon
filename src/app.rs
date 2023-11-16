@@ -235,7 +235,7 @@ impl App {
         if let Some((h, m)) = self.load.battery_time {
             format!("Time Remaining: {}h {}m", h, m)
         } else {
-            "~rr".to_owned()
+            "Err".to_owned()
         }
     }
 
