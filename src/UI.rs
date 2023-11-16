@@ -97,17 +97,30 @@ pub fn ui(f: &mut Frame, app: &App) {
         .split(battery_space);
 
     // Battery widget Paragraph
-    let battery_percent = Paragraph::new(Text::styled(app.get_battery_time(), Style::default()))
-        .alignment(Alignment::Center);
+    let battery_percent = match app.is_on_ac_power() {
+        true => Paragraph::new(Text::styled(format!("AC is plugged in"), Style::default()))
+            .alignment(Alignment::Center),
+        false => Paragraph::new(Text::styled(app.get_battery_time(), Style::default()))
+            .alignment(Alignment::Center),
+    };
 
     // Battery Gauge Widget
-    let battery_gauge = Gauge::default()
-        .gauge_style(
-            Style::default()
-                .fg(app.get_battery_color())
-                .bg(Color::DarkGray),
-        )
-        .percent(app.get_battery_left() as u16);
+    let battery_gauge = match app.is_on_ac_power() {
+        true => Gauge::default()
+            .gauge_style(
+                Style::default()
+                    .fg(app.get_battery_color())
+                    .bg(Color::Green),
+            )
+            .percent(100 as u16),
+        false => Gauge::default()
+            .gauge_style(
+                Style::default()
+                    .fg(app.get_battery_color())
+                    .bg(Color::DarkGray),
+            )
+            .percent(app.get_battery_left() as u16),
+    };
 
     // ++++++++++++ CPUT TEMP ++++++++++++ //
     let temp_block = Block::default()
