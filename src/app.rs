@@ -92,13 +92,21 @@ impl Poller {
                 Err(_) => loads.battery = None,
             }
 
+            // Check if AC Power is on
+            match sys.on_ac_power() {
+                Ok(p) => {
+                    loads.ac_power = Some(p);
+                }
+                Err(_) => loads.ac_power = None,
+            };
+
             // set memory usage
             match sys.memory() {
                 Ok(mem) => {
                     loads.mem = Some((saturating_sub_bytes(mem.total, mem.free), mem.total));
                 }
                 Err(_) => loads.mem = None,
-            }
+            };
 
             // Send results
             let res = tx.send(loads);
@@ -118,6 +126,7 @@ pub struct Loads {
     idle: Option<f32>,
     temp: Option<f32>,
     battery: Option<u8>,
+    ac_power: Option<bool>,
     mem: Option<(ByteSize, ByteSize)>,
     battery_time: Option<(u32, u32)>,
     battery_color: ratatui::style::Color,
@@ -133,6 +142,7 @@ impl Loads {
             idle: None,
             temp: None,
             battery: None,
+            ac_power: None,
             mem: None,
             battery_time: None,
             battery_color: ratatui::style::Color::Red,
@@ -182,19 +192,18 @@ impl App {
     }
 
     // returns a slice of our vector of temp points....
-    pub fn get_temp_points<'a>(&'a self) -> &'a[(f64, f64)] {
+    pub fn get_temp_points<'a>(&'a self) -> &'a [(f64, f64)] {
         match self.units {
-           Units::Celcius => {
-            let slice = &self.temp_vec[0..(self.temp_vec.len())];
-            slice.try_into().unwrap()
-           },
-           Units::Fahrenheit => {
-            let slice = &self.temp_vec_f[0..(self.temp_vec.len())];
-            slice.try_into().unwrap()
-            },
-           }
+            Units::Celcius => {
+                let slice = &self.temp_vec[0..(self.temp_vec.len())];
+                slice.try_into().unwrap()
+            }
+            Units::Fahrenheit => {
+                let slice = &self.temp_vec_f[0..(self.temp_vec.len())];
+                slice.try_into().unwrap()
+            }
         }
-    
+    }
 
     pub fn get_battery_color(&self) -> ratatui::style::Color {
         self.load.battery_color
@@ -212,6 +221,13 @@ impl App {
             p
         } else {
             0
+        }
+    }
+    pub fn is_on_ac_power(&self) -> bool {
+        if let Some(p) = self.load.ac_power {
+            true
+        } else {
+            false
         }
     }
 
@@ -253,8 +269,10 @@ impl App {
                     // push new value on
                     self.temp_vec
                         .push((self.temp_vec.len() as f64, loads.temp.unwrap_or(0.0) as f64));
-                    self.temp_vec_f
-                        .push((self.temp_vec_f.len() as f64, ((loads.temp.unwrap_or(0.0)*9.0/5.0) + 32.0) as f64));
+                    self.temp_vec_f.push((
+                        self.temp_vec_f.len() as f64,
+                        ((loads.temp.unwrap_or(0.0) * 9.0 / 5.0) + 32.0) as f64,
+                    ));
                     // Replace Loads struct
                     self.load = loads;
                 }
