@@ -97,9 +97,12 @@ pub fn ui(f: &mut Frame, app: &App) {
         .split(battery_space);
 
     // Battery widget Paragraph
-    let battery_percent = Paragraph::new(Text::styled(app.get_battery_time(), Style::default()))
+    let ac_power = Paragraph::new(Text::styled(format!("AC is plugged in"), Style::default()))
         .alignment(Alignment::Center);
 
+    let battery_percent = Paragraph::new(Text::styled(app.get_battery_time(), Style::default()))
+        .alignment(Alignment::Center);
+    //
     // Battery Gauge Widget
     let battery_gauge = Gauge::default()
         .gauge_style(
@@ -262,7 +265,11 @@ pub fn ui(f: &mut Frame, app: &App) {
     }
     f.render_widget(temp, temp_chunks[0]);
     f.render_widget(battery_block, battery_temp_chunks[1]);
-    f.render_widget(battery_percent, battery_recs[0]);
+    if app.is_on_ac_power() {
+        f.render_widget(ac_power, battery_recs[0]);
+    } else {
+        f.render_widget(battery_percent, battery_recs[0]);
+    }
     f.render_widget(battery_gauge, battery_recs[1]);
 }
 

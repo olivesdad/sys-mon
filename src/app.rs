@@ -92,13 +92,21 @@ impl Poller {
                 Err(_) => loads.battery = None,
             }
 
+            // Check if AC Power is on
+            match sys.on_ac_power() {
+                Ok(p) => {
+                    loads.ac_power = Some(p);
+                }
+                Err(_) => loads.ac_power = None,
+            };
+
             // set memory usage
             match sys.memory() {
                 Ok(mem) => {
                     loads.mem = Some((saturating_sub_bytes(mem.total, mem.free), mem.total));
                 }
                 Err(_) => loads.mem = None,
-            }
+            };
 
             // Send results
             let res = tx.send(loads);
@@ -118,6 +126,7 @@ pub struct Loads {
     idle: Option<f32>,
     temp: Option<f32>,
     battery: Option<u8>,
+    ac_power: Option<bool>,
     mem: Option<(ByteSize, ByteSize)>,
     battery_time: Option<(u32, u32)>,
     battery_color: ratatui::style::Color,
@@ -133,6 +142,7 @@ impl Loads {
             idle: None,
             temp: None,
             battery: None,
+            ac_power: None,
             mem: None,
             battery_time: None,
             battery_color: ratatui::style::Color::Red,
@@ -211,6 +221,12 @@ impl App {
             p
         } else {
             0
+        }
+    }
+    pub fn is_on_ac_power(&self) -> bool {
+        match self.load.ac_power {
+            Some(p) => p,
+            None => false,
         }
     }
 
