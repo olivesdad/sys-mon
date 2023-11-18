@@ -137,7 +137,8 @@ pub fn ui(f: &mut Frame, app: &App) {
         .graph_type(GraphType::Line)
         .style(Style::default().fg(Color::LightBlue))
         .data(app.get_temp_points())];
-    let chart = Chart::new(dataset)
+
+    let chart = Chart::new(dataset.clone())
         .x_axis(
             Axis::default()
                 .title("")
@@ -158,6 +159,26 @@ pub fn ui(f: &mut Frame, app: &App) {
                 ),
         );
 
+    let chart_f = Chart::new(dataset)
+        .x_axis(
+            Axis::default()
+                .title("")
+                .style(Style::default())
+                .bounds([0.0, app.get_temp_points().len() as f64]),
+        )
+        .y_axis(
+            Axis::default()
+                .title(format!("Temp ({unit})"))
+                .style(Style::default())
+                .bounds([0.0, 120.0])
+                .labels(
+                    ["32", "68", "104", "140", "176", "212", "248"]
+                        .iter()
+                        .cloned()
+                        .map(Span::from)
+                        .collect(),
+                ),
+        );
     let temp_inner = temp_block.inner(battery_temp_chunks[0]);
     let temp_chunks = Layout::default()
         .constraints([Constraint::Max(3), Constraint::Min(10)])
@@ -237,7 +258,11 @@ pub fn ui(f: &mut Frame, app: &App) {
     f.render_widget(load_bars, load_bars_chunks[1]);
     f.render_widget(memory, loads_mem[1]);
     f.render_widget(temp_block, battery_temp_chunks[0]);
-    f.render_widget(chart, temp_chunks[1]);
+    if unit == "C" {
+        f.render_widget(chart, temp_chunks[1]);
+    } else {
+        f.render_widget(chart_f, temp_chunks[1]);
+    }
     f.render_widget(temp, temp_chunks[0]);
     f.render_widget(battery_block, battery_temp_chunks[1]);
     if app.is_on_ac_power() {

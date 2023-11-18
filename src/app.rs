@@ -199,7 +199,7 @@ impl App {
                 slice.try_into().unwrap()
             }
             Units::Fahrenheit => {
-                let slice = &self.temp_vec_f[0..(self.temp_vec.len())];
+                let slice = &self.temp_vec[0..(self.temp_vec.len())];
                 slice.try_into().unwrap()
             }
         }
@@ -270,7 +270,7 @@ impl App {
                         .push((self.temp_vec.len() as f64, loads.temp.unwrap_or(0.0) as f64));
                     self.temp_vec_f.push((
                         self.temp_vec_f.len() as f64,
-                        ((loads.temp.unwrap_or(0.0) * 9.0 / 5.0) + 32.0) as f64,
+                        loads.temp.unwrap_or(0.0) as f64,
                     ));
                     // Replace Loads struct
                     self.load = loads;
