@@ -1,12 +1,11 @@
 use app::App;
 use crossterm::{
-    event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode, KeyEventKind},
     execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
 
 use ratatui::{
-    backend::{self, Backend, CrosstermBackend},
+    backend::{Backend, CrosstermBackend},
     Terminal,
 };
 use std::sync::mpsc::sync_channel;
