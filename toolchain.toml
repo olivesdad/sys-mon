@@ -1,6 +1,5 @@
 # toolchain.toml
 [toolchain]
-channel = "nightly-2024-02-04"
-components = [ "rustfmt", "rust-src" ]
+channel = "1.76.0"
+components = [ "rustfmt", "rust-src", "rust-std"]
 profile = "minimal"
-
